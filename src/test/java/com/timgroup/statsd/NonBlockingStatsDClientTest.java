@@ -35,7 +35,7 @@ public final class NonBlockingStatsDClientTest {
     @Test(timeout=5000L) public void
     sends_counter_value_to_statsd() throws Exception {
         client.count("mycount", Long.MAX_VALUE);
-        server.waitForMessage();org.hamcrest.MatcherAssert
+        server.waitForMessage();
         
         assertThat(server.messagesReceived(), contains("my.prefix.mycount:9223372036854775807|c"));
     }
