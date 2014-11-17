@@ -87,13 +87,67 @@ public final class NonBlockingStatsDClient extends ConvenienceMethodProvidingSta
      *     if the client could not be started
      */
     public NonBlockingStatsDClient(String prefix, String hostname, int port, StatsDClientErrorHandler errorHandler) throws StatsDClientException {
+        this(prefix, hostname, port, errorHandler, -1);
+    }
+
+    /**
+     * Create a new StatsD client communicating with a StatsD instance on the
+     * specified host and port. All messages send via this client will have
+     * their keys prefixed with the specified string. The new client will
+     * attempt to open a connection to the StatsD server immediately upon
+     * instantiation, and may throw an exception if that a connection cannot
+     * be established. Once a client has been instantiated in this way, all
+     * exceptions thrown during subsequent usage are passed to the specified
+     * handler and then consumed, guaranteeing that failures in metrics will
+     * not affect normal code execution.
+     * 
+     * @param prefix
+     *     the prefix to apply to keys sent via this client (can be null or empty for no prefix)
+     * @param hostname
+     *     the host name of the targeted StatsD server
+     * @param port
+     *     the port of the targeted StatsD server
+     * @param errorHandler
+     *     handler to use when an exception occurs during usage
+     * @param timeToLive
+     *     the number of hops UDP packets should survive
+     * @throws StatsDClientException
+     *     if the client could not be started
+     */
+    public NonBlockingStatsDClient(String prefix, String hostname, int port, StatsDClientErrorHandler errorHandler, int timeToLive) throws StatsDClientException {
         this.prefix = (prefix == null || prefix.trim().isEmpty()) ? "" : (prefix.trim() + ".");
 
         try {
-            this.sender = new NonBlockingUdpSender(hostname, port, STATS_D_ENCODING, errorHandler);
+            this.sender = new NonBlockingUdpSender(hostname, port, STATS_D_ENCODING, errorHandler, timeToLive);
         } catch (Exception e) {
             throw new StatsDClientException("Failed to start StatsD client", e);
         }
+    }
+
+    /**
+     * Create a new StatsD client communicating with a StatsD instance on the
+     * specified host and port. All messages send via this client will have
+     * their keys prefixed with the specified string. The new client will
+     * attempt to open a connection to the StatsD server immediately upon
+     * instantiation, and may throw an exception if that a connection cannot
+     * be established. Once a client has been instantiated in this way, all
+     * exceptions thrown during subsequent usage are passed to the specified
+     * handler and then consumed, guaranteeing that failures in metrics will
+     * not affect normal code execution.
+     * 
+     * @param prefix
+     *     the prefix to apply to keys sent via this client (can be null or empty for no prefix)
+     * @param hostname
+     *     the host name of the targeted StatsD server
+     * @param port
+     *     the port of the targeted StatsD server
+     * @param timeToLive
+     *     the number of hops UDP packets should survive
+     * @throws StatsDClientException
+     *     if the client could not be started
+     */
+    public NonBlockingStatsDClient(String prefix, String hostname, int port, int timeToLive) throws StatsDClientException {
+        this(prefix, hostname, port, NO_OP_HANDLER, timeToLive);
     }
 
     /**
@@ -111,7 +165,7 @@ public final class NonBlockingStatsDClient extends ConvenienceMethodProvidingSta
      * <p>This method is non-blocking and is guaranteed not to throw an exception.</p>
      * 
      * @param aspect
-     *     the name of the counter to adjust
+     *     the name@VERSION@ of the counter to adjust
      * @param delta
      *     the amount to adjust the counter by
      * @param sampleRate

@@ -2,6 +2,7 @@ package com.timgroup.statsd;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.Charset;
@@ -16,10 +17,14 @@ public final class NonBlockingUdpSender {
     private final ExecutorService executor;
     private StatsDClientErrorHandler handler;
 
-    public NonBlockingUdpSender(String hostname, int port, Charset encoding, StatsDClientErrorHandler handler) throws IOException {
+    public NonBlockingUdpSender(String hostname, int port, Charset encoding, StatsDClientErrorHandler handler, int timeToLive) throws IOException {
         this.encoding = encoding;
         this.handler = handler;
         this.clientSocket = DatagramChannel.open();
+        if (timeToLive > 0) {
+            clientSocket.setOption(StandardSocketOptions.IP_MULTICAST_TTL, timeToLive);
+        }
+        
         this.clientSocket.connect(new InetSocketAddress(hostname, port));
 
         this.executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
